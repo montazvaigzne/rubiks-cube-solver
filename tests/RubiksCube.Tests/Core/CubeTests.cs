@@ -56,17 +56,7 @@ public class CubeTests
     {
         var initialCube = new Cube();
 
-        var cornerPositions = new int[][]
-        {
-            [8, 9, 20],   // URF (Up-Right-Front)
-            [6, 18, 38],  // UFL (Up-Front-Left)
-            [0, 36, 47],  // ULB (Up-Left-Back)
-            [2, 45, 11],  // UBR (Up-Back-Right)
-            [29, 26, 15], // DFR (Down-Front-Right)
-            [27, 24, 44], // DLF (Down-Left-Front)
-            [33, 53, 42], // DBL (Down-Back-Left)
-            [35, 17, 51]  // DRB (Down-Right-Back)
-        };
+        var cornerPositions = CubeMap.CornerPositions;
 
         // Read the original colors of the corners from the initial cube
         var originalColorSets = cornerPositions.Select(pos => new[]
@@ -120,17 +110,7 @@ public class CubeTests
         MoveInterpreter.ExecuteMove(cube, move);
 
         // Check that the corners still have valid color combinations
-        var cornerPositions = new int[][]
-        {
-            [8, 9, 20],   // URF (Up-Right-Front)
-            [6, 18, 38],  // UFL (Up-Front-Left)
-            [0, 36, 47],  // ULB (Up-Left-Back)  
-            [2, 45, 11],  // UBR (Up-Back-Right) 
-            [29, 26, 15], // DFR (Down-Front-Right)
-            [27, 24, 44], // DLF (Down-Left-Front)
-            [33, 53, 42], // DBL (Down-Back-Left)
-            [35, 17, 51]  // DRB (Down-Right-Back)
-        };
+        var cornerPositions = CubeMap.CornerPositions;
 
         var originalCube = new Cube();
         var validColorSets = cornerPositions.Select(pos => new[]

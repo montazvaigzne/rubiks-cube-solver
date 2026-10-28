@@ -20,6 +20,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RubiksCube.Tests", "tests\RubiksCube.Tests\RubiksCube.Tests.csproj", "{AA43359D-FBB5-4386-BE68-3181BD53788B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{CDF72714-32F0-42F4-8034-FA839B9931C2}"
+	ProjectSection(SolutionItems) = preProject
+		tools\cubeHelper.html = tools\cubeHelper.html
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
