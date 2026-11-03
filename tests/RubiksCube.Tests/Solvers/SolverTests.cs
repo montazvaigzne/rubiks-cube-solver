@@ -1,0 +1,124 @@
+﻿using RubiksCube.Core;
+using RubiksCube.Solvers;
+using Xunit;
+
+namespace RubiksCube.Tests.Solvers;
+
+public class SolverTests
+{
+    // TEST: FindEdge, checking if it correctly identifies the edge pieces based on their colors
+    [Theory]
+    [InlineData(Color.White, Color.Green, 7, 19)]   // UF 
+    [InlineData(Color.White, Color.Red, 5, 10)]     // UR 
+    [InlineData(Color.Red, Color.Green, 23, 12)]    // FR 
+    [InlineData(Color.Yellow, Color.Blue, 34, 52)]  // DB 
+    public void FindEdge_OnSolvedCube_ShouldFindEdge(Color color1, Color color2, int expectedIndex1, int expectedIndex2)
+    {
+        var cube = new Cube();
+
+        var result = SolverBeginner.FindEdge(cube, color1, color2);
+
+        Assert.Equal(expectedIndex1, result.Item1);
+        Assert.Equal(expectedIndex2, result.Item2);
+    }
+
+    // TEST: FindEdge, checking if it still finds the edge when the colors are reversed
+    [Fact]
+    public void FindEdge_WhenColorsAreReversed_ShouldStillFindEdge()
+    {
+        var cube = new Cube();
+
+        // logically, the edge (7, 19) is the same as (19, 7), just with colors reversed
+        var result = SolverBeginner.FindEdge(cube, Color.Green, Color.White);
+
+        Assert.Equal(7, result.Item1);
+        Assert.Equal(19, result.Item2);
+    }
+
+    // TEST: FindEdge, checking if it can find the edge after a move has been made
+    [Fact]
+    public void FindEdge_AfterMoveF_ShouldFindMovedEdge()
+    {
+        var cube = new Cube();
+
+        // After an F move, the white-green edge (7, 19) moves to (23, 12)
+        cube.MoveF(true);
+
+        var result = SolverBeginner.FindEdge(cube, Color.White, Color.Green);
+
+        Assert.Equal(23, result.Item1);
+        Assert.Equal(12, result.Item2);
+    }
+
+    // TEST: FindEdge, checking if it can find the edge after a U move has been made
+    [Fact]
+    public void FindEdge_AfterMoveU_ShouldFindMovedEdge()
+    {
+        var cube = new Cube();
+
+        // After a U move, the white-green edge (7, 19) moves to (3, 37)
+        cube.MoveU(true);
+
+        var result = SolverBeginner.FindEdge(cube, Color.White, Color.Green);
+
+        Assert.Equal(3, result.Item1);
+        Assert.Equal(37, result.Item2);
+    }
+
+    // TEST: FindEdge, checking if it returns (-1, -1) when the edge does not exist
+    [Fact]
+    public void FindEdge_WhenEdgeDoesNotExist_ShouldReturnMinusOne()
+    {
+        var cube = new Cube();
+
+        // The edge with colors White and Yellow does not exist on a cube
+        var result = SolverBeginner.FindEdge(cube, Color.White, Color.Yellow);
+
+        Assert.Equal(-1, result.Item1);
+        Assert.Equal(-1, result.Item2);
+    }
+
+    // TEST GROUP: SolveDaisy and SolveWhiteCross on various scrambles
+    [Theory]
+    [InlineData("")]                                     // Already solved state
+    [InlineData("R")]                                    // Single move
+    [InlineData("R U")]                                  // Two moves
+    [InlineData("R U F L D B")]                          // All faces once
+    [InlineData("F R U R' U' F'")]                       // I-Shape (OLL)
+    [InlineData("R U2 R' U' R U' R'")]                   // Antisune (OLL)
+    [InlineData("R2 D2 F2 U2 L2 B2")]                    // Double moves
+    public void SolveWhiteCross_OnVariousScrambles_ShouldSolveCross(string scramble)
+    {
+        var cube = new Cube();
+
+        // Scramble the cube based on the provided sequence
+        if (!string.IsNullOrWhiteSpace(scramble))
+        {
+            var moves = scramble.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var move in moves)
+            {
+                MoveInterpreter.ExecuteMove(cube, move);
+            }
+        }
+
+        SolverBeginner.SolveDaisy(cube);
+
+        // Check if the Daisy is actually solved (all 4 white edges are on the bottom)
+        Assert.True(cube.GetColor(28) == Color.White, "Daisy error: Index 28 is not white.");
+        Assert.True(cube.GetColor(30) == Color.White, "Daisy error: Index 30 is not white.");
+        Assert.True(cube.GetColor(32) == Color.White, "Daisy error: Index 32 is not white.");
+        Assert.True(cube.GetColor(34) == Color.White, "Daisy error: Index 34 is not white.");
+
+        SolverBeginner.SolveWhiteCross(cube);
+
+       // Check if all 4 white edges are in their correct positions on the Up face
+        Assert.True(cube.GetColor(7) == Color.White && cube.GetColor(19) == Color.Green,
+            "Cross error: Up-Front edge is not placed correctly.");
+        Assert.True(cube.GetColor(5) == Color.White && cube.GetColor(10) == Color.Red,
+            "Cross error: Up-Right edge is not placed correctly.");
+        Assert.True(cube.GetColor(1) == Color.White && cube.GetColor(46) == Color.Blue,
+            "Cross error: Up-Back edge is not placed correctly.");
+        Assert.True(cube.GetColor(3) == Color.White && cube.GetColor(37) == Color.Orange,
+            "Cross error: Up-Left edge is not placed correctly.");
+    }
+}

@@ -136,4 +136,55 @@ public class CubeTests
             Assert.True(isMatch, $"Corner at indices {pos[0]}, {pos[1]}, {pos[2]} is broken after move '{move}'! Current colors: {string.Join(", ", currentColors)}");
         }
     }
+    // TEST: If doing a move on a scrambled cube preserves the integrity of all of the colors on the cube
+    [Fact]
+    public void MoveSequence_F_R_U_B_L_D_ShouldMatchExpectedState()
+    {
+        var cube = new Cube();
+        string[] moves = { "F", "R", "U", "B", "L", "D" };
+
+        foreach (var move in moves)
+        {
+            MoveInterpreter.ExecuteMove(cube, move);
+        }
+
+        // Define the expected colors for each position on the cube after the sequence of moves
+        var expectedColors = new Color[]
+        {
+            // Up (0-8)
+            Color.Yellow, Color.Red, Color.Red,
+            Color.Orange, Color.White, Color.White,
+            Color.Orange, Color.Green, Color.Green,
+            
+            // Right (9-17)
+            Color.Orange, Color.Blue, Color.Blue,
+            Color.Red, Color.Red, Color.Yellow,
+            Color.Green, Color.Green, Color.Yellow,
+            
+            // Front (18-26)
+            Color.Blue, Color.White, Color.White,
+            Color.Orange, Color.Green, Color.Yellow,
+            Color.Yellow, Color.Yellow, Color.Red,
+            
+            // Down (27-35)
+            Color.Green, Color.Green, Color.White,
+            Color.Orange, Color.Yellow, Color.Red,
+            Color.Orange, Color.Blue, Color.Blue,
+            
+            // Left (36-44)
+            Color.Orange, Color.White, Color.White,
+            Color.Orange, Color.Orange, Color.Green,
+            Color.Blue, Color.Blue, Color.Red,
+            
+            // Back (45-53)
+            Color.White, Color.White, Color.Green,
+            Color.Blue, Color.Blue, Color.Yellow,
+            Color.Red, Color.Red, Color.Yellow
+        };
+
+        for (int i = 0; i < 54; i++)
+        {
+            Assert.Equal(expectedColors[i], cube.GetColor(i));
+        }
+    }
 }
