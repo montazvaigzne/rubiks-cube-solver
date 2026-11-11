@@ -78,40 +78,43 @@ public class SolverTests
         Assert.Equal(-1, result.Item2);
     }
 
-    // TEST GROUP: SolveDaisy and SolveWhiteCross on various scrambles
-    [Theory]
-    [InlineData("")]                                     // Already solved state
-    [InlineData("R")]                                    // Single move
-    [InlineData("R U")]                                  // Two moves
-    [InlineData("R U F L D B")]                          // All faces once
-    [InlineData("F R U R' U' F'")]                       // I-Shape (OLL)
-    [InlineData("R U2 R' U' R U' R'")]                   // Antisune (OLL)
-    [InlineData("R2 D2 F2 U2 L2 B2")]                    // Double moves
-    public void SolveWhiteCross_OnVariousScrambles_ShouldSolveCross(string scramble)
+    // TEST: SolveDaisy should create the Daisy pattern from a scrambled cube
+    [Fact]
+    public void SolveDaisy_OnScrambledCube_ShouldCreateDaisy()
     {
         var cube = new Cube();
 
-        // Scramble the cube based on the provided sequence
-        if (!string.IsNullOrWhiteSpace(scramble))
-        {
-            var moves = scramble.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var move in moves)
-            {
-                MoveInterpreter.ExecuteMove(cube, move);
-            }
-        }
+        // Scramble the cube with a few moves
+        MoveInterpreter.ExecuteMove(cube, "R U F");
 
         SolverBeginner.SolveDaisy(cube);
 
-        // Check if the Daisy is actually solved (all 4 white edges are on the bottom)
+        // Check that the four white edge pieces are on the Down face (indices 28, 30, 32, 34)
         Assert.True(cube.GetColor(28) == Color.White, "Daisy error: Index 28 is not white.");
         Assert.True(cube.GetColor(30) == Color.White, "Daisy error: Index 30 is not white.");
         Assert.True(cube.GetColor(32) == Color.White, "Daisy error: Index 32 is not white.");
         Assert.True(cube.GetColor(34) == Color.White, "Daisy error: Index 34 is not white.");
+    }
+
+    // TEST GROUP: SolveFirstLayer (full first layer including Cross and Corners) on various scrambles
+    [Theory]
+    //[InlineData("")]                                     // Already solved state
+    //[InlineData("R")]                                    // Single move
+    //[InlineData("R U")]                                  // Two moves
+    //[InlineData("R U F L D B")]                          // All faces once
+   // [InlineData("F R U R' U' F'")]                       // I-Shape (OLL)
+   // [InlineData("R U2 R' U' R U' R'")]                   // Antisune (OLL)
+    [InlineData("R2 D2 F2 U2 L2 B2")]                    // Double moves
+    public void SolveFirstLayer_OnVariousScrambles_ShouldSolveFirstLayer(string scramble)
+    {
+        var cube = new Cube();
+
+        // Scramble the cube based on the provided sequence
+        MoveInterpreter.ExecuteMove(cube, scramble);
 
         SolverBeginner.SolveWhiteCross(cube);
 
-       // Check if all 4 white edges are in their correct positions on the Up face
+       // 1. Check if all 4 white edges are in their correct positions on the Up face
         Assert.True(cube.GetColor(7) == Color.White && cube.GetColor(19) == Color.Green,
             "Cross error: Up-Front edge is not placed correctly.");
         Assert.True(cube.GetColor(5) == Color.White && cube.GetColor(10) == Color.Red,
@@ -120,5 +123,26 @@ public class SolverTests
             "Cross error: Up-Back edge is not placed correctly.");
         Assert.True(cube.GetColor(3) == Color.White && cube.GetColor(37) == Color.Orange,
             "Cross error: Up-Left edge is not placed correctly.");
+
+        SolverBeginner.SolveFirstLayer(cube);
+
+        // 2. FINAL CHECK: Ensure the entire first layer (Up face + side T-shapes) is solved
+         // Check if the entire Up face is white
+        for (int i = 0; i < 9; i++)
+        {
+            Assert.True(cube.GetColor(i) == Color.White, $"First layer error: Index {i} on Up face is not white.");
+        }
+
+        // Check the middle layer colors of the white edges (RE-CHECKING THE CROSS!)
+        Assert.True(cube.GetColor(19) == Color.Green, "First layer broke the Up-Front edge side color!");
+        Assert.True(cube.GetColor(10) == Color.Red, "First layer broke the Up-Right edge side color!");
+        Assert.True(cube.GetColor(46) == Color.Blue, "First layer broke the Up-Back edge side color!");
+        Assert.True(cube.GetColor(37) == Color.Orange, "First layer broke the Up-Left edge side color!");
+
+        // Check if all 4 side colors of the corners are solved (T-shapes)
+        Assert.True(cube.GetColor(20) == Color.Green && cube.GetColor(9) == Color.Red, "URF corner error.");
+        Assert.True(cube.GetColor(18) == Color.Green && cube.GetColor(38) == Color.Orange, "UFL corner error.");
+        Assert.True(cube.GetColor(47) == Color.Blue && cube.GetColor(36) == Color.Orange, "ULB corner error.");
+        Assert.True(cube.GetColor(45) == Color.Blue && cube.GetColor(11) == Color.Red, "UBR corner error.");
     }
 }

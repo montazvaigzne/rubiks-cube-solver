@@ -18,12 +18,31 @@ public class CubeTests
     {
         var cube = new Cube();
 
-        for (int i = 0; i < 4; i++)
-        {
-            MoveInterpreter.ExecuteMove(cube, move); // Always rotate clockwise for this test
-        }
+        MoveInterpreter.ExecuteMove(cube, $"{move} {move} {move} {move}"); // Rotate clockwise 4 times
 
         Assert.True(cube.IsSolved());
+    }
+
+    // TEST: A double move (e.g. R2) should be the same as doing the move twice (R R)
+    [Theory]
+    [InlineData("U")]
+    [InlineData("D")]
+    [InlineData("R")]
+    [InlineData("L")]
+    [InlineData("F")]
+    [InlineData("B")]
+    public void DoubleMove_ShouldEqualTwoSingleMoves(string face)
+    {
+        var doubleMove = new Cube();
+        MoveInterpreter.ExecuteMove(doubleMove, face + "2");
+
+        var twoMoves = new Cube();
+        MoveInterpreter.ExecuteMove(twoMoves, $"{face} {face}");
+
+        for (int i = 0; i < 54; i++)
+        {
+            Assert.Equal(twoMoves.GetColor(i), doubleMove.GetColor(i));
+        }
     }
 
     // TEST: If doing a move and then its inverse returns the cube to its solved state
@@ -38,8 +57,7 @@ public class CubeTests
     {
         var cube = new Cube();
 
-        MoveInterpreter.ExecuteMove(cube, move);      // Example: "R" (clockwise)
-        MoveInterpreter.ExecuteMove(cube, move + "'"); // Example: "R'" (counter-clockwise)
+        MoveInterpreter.ExecuteMove(cube, $"{move} {move}'"); // Example: "R R'"
 
         Assert.True(cube.IsSolved());
     }
@@ -102,9 +120,7 @@ public class CubeTests
         var cube = new Cube();
 
         // Scramble the cube with a series of moves so the colors are not in their original positions
-        MoveInterpreter.ExecuteMove(cube, "R");
-        MoveInterpreter.ExecuteMove(cube, "U");
-        MoveInterpreter.ExecuteMove(cube, "F");
+        MoveInterpreter.ExecuteMove(cube, "R U F");
 
         // Do the move we want to test
         MoveInterpreter.ExecuteMove(cube, move);
@@ -141,12 +157,7 @@ public class CubeTests
     public void MoveSequence_F_R_U_B_L_D_ShouldMatchExpectedState()
     {
         var cube = new Cube();
-        string[] moves = { "F", "R", "U", "B", "L", "D" };
-
-        foreach (var move in moves)
-        {
-            MoveInterpreter.ExecuteMove(cube, move);
-        }
+        MoveInterpreter.ExecuteMove(cube, "F R U B L D");
 
         // Define the expected colors for each position on the cube after the sequence of moves
         var expectedColors = new Color[]
