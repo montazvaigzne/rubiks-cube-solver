@@ -186,4 +186,51 @@ public class SolverTests
         Assert.True(cube.GetColor(14) == Color.Red && cube.GetColor(48) == Color.Blue, "Middle layer error: BR edge is not solved.");
         Assert.True(cube.GetColor(39) == Color.Orange && cube.GetColor(50) == Color.Blue, "Middle layer error: BL edge is not solved.");
     }
+
+    // TEST GROUP: SolveOLL (orientation of the last layer) on various scrambles
+    [Theory]
+    [InlineData("")]                                     // Already solved state
+    [InlineData("R")]                                    // Single move
+    [InlineData("R U")]                                  // Two moves
+    [InlineData("R U F L D B")]                          // All faces once
+    [InlineData("F R U R' U' F'")]                       // I-Shape (OLL)
+    [InlineData("R U2 R' U' R U' R'")]                   // Antisune (OLL)
+    [InlineData("R2 D2 F2 U2 L2 B2")]                    // Double moves
+    public void SolveOLL_OnVariousScrambles_ShouldOrientLastLayer(string scramble)
+    {
+        var cube = new Cube();
+
+        // Scramble the cube based on the provided sequence
+        MoveInterpreter.ExecuteMove(cube, scramble);
+
+        SolverBeginner.SolveWhiteCross(cube);
+        SolverBeginner.SolveFirstLayer(cube);
+        SolverBeginner.SolveMiddleLayer(cube);
+        SolverBeginner.SolveOLL(cube);
+
+        // 1. Check that the first two layers were not broken by the OLL algorithms
+        for (int i = 0; i < 9; i++)
+        {
+            Assert.True(cube.GetColor(i) == Color.White, $"OLL error: Index {i} on Up face is not white.");
+        }
+        Assert.True(cube.GetColor(19) == Color.Green && cube.GetColor(10) == Color.Red &&
+                    cube.GetColor(46) == Color.Blue && cube.GetColor(37) == Color.Orange,
+            "OLL error: The white cross side colors were broken.");
+        Assert.True(cube.GetColor(20) == Color.Green && cube.GetColor(9) == Color.Red &&
+                    cube.GetColor(18) == Color.Green && cube.GetColor(38) == Color.Orange &&
+                    cube.GetColor(47) == Color.Blue && cube.GetColor(36) == Color.Orange &&
+                    cube.GetColor(45) == Color.Blue && cube.GetColor(11) == Color.Red,
+            "OLL error: The first layer corners were broken.");
+        Assert.True(cube.GetColor(23) == Color.Green && cube.GetColor(12) == Color.Red &&
+                    cube.GetColor(21) == Color.Green && cube.GetColor(41) == Color.Orange &&
+                    cube.GetColor(14) == Color.Red && cube.GetColor(48) == Color.Blue &&
+                    cube.GetColor(39) == Color.Orange && cube.GetColor(50) == Color.Blue,
+            "OLL error: The middle layer was broken.");
+
+        // 2. Check that the whole Down face is yellow
+        for (int i = 27; i < 36; i++)
+        {
+            Assert.True(cube.GetColor(i) == Color.Yellow, $"OLL error: Index {i} on Down face is not yellow.");
+        }
+    }
 }

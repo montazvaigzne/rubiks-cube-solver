@@ -337,7 +337,7 @@ public class SolverBeginner
 
             // The edge is in the Down layer: rotate D until its side color matches the side center.
             // D slots: DF side=25 center=22, DR side=16 center=13, DB side=52 center=49, DL side=43 center=40
-            int down = 0;
+            int down;
 
             while (true)
             {
@@ -387,5 +387,47 @@ public class SolverBeginner
         else if (pos == (21, 41)) MoveInterpreter.ExecuteMove(cube, "D L D' L' D' F' D F"); // Front-Left
         else if (pos == (14, 48)) MoveInterpreter.ExecuteMove(cube, "D' B' D B D R D' R'"); // Back-Right
         else MoveInterpreter.ExecuteMove(cube, "D' L' D L D B D' B'");                  // Back-Left
+    }
+
+    // Main method to solve OLL (orientation of the last layer)
+    // Assumes the first two layers are already solved
+    public static void SolveOLL(Cube cube)
+    {
+        SolveYellowCross(cube);
+        SolveYellowCorners(cube);
+    }
+
+    // Orients the 4 yellow edges, so they form the yellow cross on the Down face
+    private static void SolveYellowCross(Cube cube)
+    {
+        int failsafe = 0;
+
+        // Check if all 4 Down edges have yellow on the Down face (28, 32, 34, 30)
+        while (!(cube.GetColor(28) == Color.Yellow && cube.GetColor(32) == Color.Yellow &&
+                 cube.GetColor(34) == Color.Yellow && cube.GetColor(30) == Color.Yellow))
+        {
+            if (++failsafe > 20) break;
+
+            // Look up the edge case and its position, then execute that algorithm
+            string alg = OllAlgorithms.EdgeLookup[OllAlgorithms.EdgeSignature(cube)];
+            MoveInterpreter.ExecuteMove(cube, alg);
+        }
+    }
+
+    // Orients the 4 yellow corners, so the whole Down face becomes yellow
+    private static void SolveYellowCorners(Cube cube)
+    {
+        int failsafe = 0;
+
+        // Check if all 4 Down corners have yellow on the Down face (29, 27, 33, 35)
+        while (!(cube.GetColor(29) == Color.Yellow && cube.GetColor(27) == Color.Yellow &&
+                 cube.GetColor(33) == Color.Yellow && cube.GetColor(35) == Color.Yellow))
+        {
+            if (++failsafe > 20) break;
+
+            // Look up the corner case and its position, then execute that algorithm
+            string alg = OllAlgorithms.CornerLookup[OllAlgorithms.CornerSignature(cube)];
+            MoveInterpreter.ExecuteMove(cube, alg);
+        }
     }
 }
