@@ -236,10 +236,7 @@ public class SolverBeginner
 
             if (inULayer)
             {
-                if (pos == (8, 9, 20)) MoveInterpreter.ExecuteMove(cube, "R' D R");
-                else if (pos == (6, 18, 38)) MoveInterpreter.ExecuteMove(cube, "L D L'");
-                else if (pos == (2, 45, 11)) MoveInterpreter.ExecuteMove(cube, "R D R'");
-                else MoveInterpreter.ExecuteMove(cube, "L' D L");
+                EjectCorner(cube, pos);
             }
             else
             {
@@ -271,5 +268,124 @@ public class SolverBeginner
                 }
             }
         }
+    }
+
+    // Takes a corner out of the Up layer and puts it down in the Down layer,
+    // so it can be rotated and inserted normally
+    private static void EjectCorner(Cube cube, (int, int, int) pos)
+    {
+        if (pos == (8, 9, 20)) MoveInterpreter.ExecuteMove(cube, "R' D R");       // Up-Right-Front
+        else if (pos == (6, 18, 38)) MoveInterpreter.ExecuteMove(cube, "L D L'"); // Up-Front-Left
+        else if (pos == (2, 45, 11)) MoveInterpreter.ExecuteMove(cube, "R D R'"); // Up-Back-Right
+        else MoveInterpreter.ExecuteMove(cube, "L' D L");                         // Up-Left-Back
+    }
+
+    // Main method to solve the middle (second) layer
+    // Assumes the white cross and the first layer are already solved
+    public static void SolveMiddleLayer(Cube cube)
+    {
+        // 1. White-Green-Red edge (Front-Right)
+        // Target: Front(23)=Green, Right(12)=Red
+        SolveMiddleEdge(cube, Color.Green, Color.Red,
+            23, 12,
+            "D F D' F' D' R' D R",       // Green is on the Down face
+            "D' R' D R D F D' F'");      // Red is on the Down face
+
+        // 2. White-Green-Orange edge (Front-Left)
+        // Target: Front(21)=Green, Left(41)=Orange
+        SolveMiddleEdge(cube, Color.Green, Color.Orange,
+            21, 41,
+            "D' F' D F D L D' L'",       // Green is on the Down face
+            "D L D' L' D' F' D F");      // Orange is on the Down face
+
+        // 3. White-Blue-Red edge (Back-Right)
+        // Target: Right(14)=Red, Back(48)=Blue
+        SolveMiddleEdge(cube, Color.Red, Color.Blue,
+            14, 48,
+            "D R D' R' D' B' D B",       // Red is on the Down face
+            "D' B' D B D R D' R'");      // Blue is on the Down face
+
+        // 4. White-Blue-Orange edge (Back-Left)
+        // Target: Left(39)=Orange, Back(50)=Blue
+        SolveMiddleEdge(cube, Color.Orange, Color.Blue,
+            39, 50,
+            "D' L' D L D B D' B'",       // Orange is on the Down face
+            "D B D' B' D' L' D L");      // Blue is on the Down face
+    }
+
+    // Helper method to find, position, and insert a specific middle-layer edge
+    private static void SolveMiddleEdge(Cube cube, Color color1, Color color2,
+                                        int targetIndex1, int targetIndex2,   // Middle-layer target (e.g., 23, 12)
+                                        string algColor1Down, string algColor2Down)
+    {
+        int failsafe = 0;
+
+        // Check if the edge is already solved (correct slot and correct orientation)
+        while (!(cube.GetColor(targetIndex1) == color1 && cube.GetColor(targetIndex2) == color2))
+        {
+            if (++failsafe > 100) break;
+
+            var pos = FindEdge(cube, color1, color2);
+
+            // If the edge is stuck in one of the 4 middle-layer slots (FR, FL, BR, BL),
+            // take it out to the Down layer first
+            if (pos == (23, 12) || pos == (21, 41) || pos == (14, 48) || pos == (39, 50))
+            {
+                EjectMiddleEdge(cube, pos);
+                continue;
+            }
+
+            // The edge is in the Down layer: rotate D until its side color matches the side center.
+            // D slots: DF side=25 center=22, DR side=16 center=13, DB side=52 center=49, DL side=43 center=40
+            int down = 0;
+
+            while (true)
+            {
+                // Remember which index is on the Down face, so we know which color to check later
+                if (pos == (25, 28)) // Down-Front
+                {
+                    down = 28;
+                    if (cube.GetColor(25) == cube.GetColor(22)) break;
+                }
+                else if (pos == (32, 16)) // Down-Right
+                {
+                    down = 32;
+                    if (cube.GetColor(16) == cube.GetColor(13)) break;
+                }
+                else if (pos == (34, 52)) // Down-Back
+                {
+                    down = 34;
+                    if (cube.GetColor(52) == cube.GetColor(49)) break;
+                }
+                else // Down-Left
+                {
+                    down = 30;
+                    if (cube.GetColor(43) == cube.GetColor(40)) break;
+                }
+
+                cube.MoveD(true);
+                pos = FindEdge(cube, color1, color2);
+            }
+
+            // Insert it into its slot using the algorithm that matches the color on the Down face
+            if (cube.GetColor(down) == color1)
+            {
+                MoveInterpreter.ExecuteMove(cube, algColor1Down);
+            }
+            else
+            {
+                MoveInterpreter.ExecuteMove(cube, algColor2Down);
+            }
+        }
+    }
+
+    // Takes an edge out of a middle-layer slot and puts it back in the Down layer.
+    // Uses the insert algorithm of that slot, so the already solved pieces stay intact.
+    private static void EjectMiddleEdge(Cube cube, (int, int) pos)
+    {
+        if (pos == (23, 12)) MoveInterpreter.ExecuteMove(cube, "D' R' D R D F D' F'"); // Front-Right
+        else if (pos == (21, 41)) MoveInterpreter.ExecuteMove(cube, "D L D' L' D' F' D F"); // Front-Left
+        else if (pos == (14, 48)) MoveInterpreter.ExecuteMove(cube, "D' B' D B D R D' R'"); // Back-Right
+        else MoveInterpreter.ExecuteMove(cube, "D' L' D L D B D' B'");                  // Back-Left
     }
 }

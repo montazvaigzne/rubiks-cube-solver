@@ -98,12 +98,12 @@ public class SolverTests
 
     // TEST GROUP: SolveFirstLayer (full first layer including Cross and Corners) on various scrambles
     [Theory]
-    //[InlineData("")]                                     // Already solved state
-    //[InlineData("R")]                                    // Single move
-    //[InlineData("R U")]                                  // Two moves
-    //[InlineData("R U F L D B")]                          // All faces once
-   // [InlineData("F R U R' U' F'")]                       // I-Shape (OLL)
-   // [InlineData("R U2 R' U' R U' R'")]                   // Antisune (OLL)
+    [InlineData("")]                                     // Already solved state
+    [InlineData("R")]                                    // Single move
+    [InlineData("R U")]                                  // Two moves
+    [InlineData("R U F L D B")]                          // All faces once
+    [InlineData("F R U R' U' F'")]                       // I-Shape (OLL)
+    [InlineData("R U2 R' U' R U' R'")]                   // Antisune (OLL)
     [InlineData("R2 D2 F2 U2 L2 B2")]                    // Double moves
     public void SolveFirstLayer_OnVariousScrambles_ShouldSolveFirstLayer(string scramble)
     {
@@ -144,5 +144,46 @@ public class SolverTests
         Assert.True(cube.GetColor(18) == Color.Green && cube.GetColor(38) == Color.Orange, "UFL corner error.");
         Assert.True(cube.GetColor(47) == Color.Blue && cube.GetColor(36) == Color.Orange, "ULB corner error.");
         Assert.True(cube.GetColor(45) == Color.Blue && cube.GetColor(11) == Color.Red, "UBR corner error.");
+    }
+
+    // TEST GROUP: SolveMiddleLayer (the 4 edges without white/yellow) on various scrambles
+    [Theory]
+    [InlineData("")]                                     // Already solved state
+    [InlineData("R")]                                    // Single move
+    [InlineData("R U")]                                  // Two moves
+    [InlineData("R U F L D B")]                          // All faces once
+    [InlineData("F R U R' U' F'")]                       // I-Shape (OLL)
+    [InlineData("R U2 R' U' R U' R'")]                   // Antisune (OLL)
+    [InlineData("R2 D2 F2 U2 L2 B2")]                    // Double moves
+    public void SolveMiddleLayer_OnVariousScrambles_ShouldSolveMiddleLayer(string scramble)
+    {
+        var cube = new Cube();
+
+        // Scramble the cube based on the provided sequence
+        MoveInterpreter.ExecuteMove(cube, scramble);
+
+        SolverBeginner.SolveWhiteCross(cube);
+        SolverBeginner.SolveFirstLayer(cube);
+        SolverBeginner.SolveMiddleLayer(cube);
+
+        // 1. Check that the first layer was not broken by the middle layer algorithms
+        for (int i = 0; i < 9; i++)
+        {
+            Assert.True(cube.GetColor(i) == Color.White, $"First layer error: Index {i} on Up face is not white.");
+        }
+        Assert.True(cube.GetColor(19) == Color.Green && cube.GetColor(10) == Color.Red &&
+                    cube.GetColor(46) == Color.Blue && cube.GetColor(37) == Color.Orange,
+            "Middle layer error: The white cross side colors were broken.");
+        Assert.True(cube.GetColor(20) == Color.Green && cube.GetColor(9) == Color.Red &&
+                    cube.GetColor(18) == Color.Green && cube.GetColor(38) == Color.Orange &&
+                    cube.GetColor(47) == Color.Blue && cube.GetColor(36) == Color.Orange &&
+                    cube.GetColor(45) == Color.Blue && cube.GetColor(11) == Color.Red,
+            "Middle layer error: The first layer corners were broken.");
+
+        // 2. Check that all 4 middle-layer edges are in their correct slots and orientation
+        Assert.True(cube.GetColor(23) == Color.Green && cube.GetColor(12) == Color.Red, "Middle layer error: FR edge is not solved.");
+        Assert.True(cube.GetColor(21) == Color.Green && cube.GetColor(41) == Color.Orange, "Middle layer error: FL edge is not solved.");
+        Assert.True(cube.GetColor(14) == Color.Red && cube.GetColor(48) == Color.Blue, "Middle layer error: BR edge is not solved.");
+        Assert.True(cube.GetColor(39) == Color.Orange && cube.GetColor(50) == Color.Blue, "Middle layer error: BL edge is not solved.");
     }
 }
