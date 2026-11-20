@@ -430,4 +430,29 @@ public class SolverBeginner
             MoveInterpreter.ExecuteMove(cube, alg);
         }
     }
+
+    // Main method to solve PLL (permutation of the last layer)
+    // Assumes the first two layers are solved and the Down face is already yellow (OLL done)
+    public static void SolvePLL(Cube cube)
+    {
+        SolveCornerPermutation(cube);
+        SolveEdgePermutation(cube);
+    }
+
+    // Puts the 4 yellow corners in their correct slots
+    private static void SolveCornerPermutation(Cube cube)
+    {
+        // The corners can only be in 24 permutations, so the lookup already has
+        // the shortest sequence for the current permutation
+        string signature = PllAlgorithms.CornerSignature(cube);
+        MoveInterpreter.ExecuteMove(cube, PllAlgorithms.CornerLookup[signature]);
+    }
+
+    // Puts the 4 yellow edges in their correct slots
+    private static void SolveEdgePermutation(Cube cube)
+    {
+        // Edge algorithms keep the corners in place, so the solved corners stay solved
+        string signature = PllAlgorithms.EdgeSignature(cube);
+        MoveInterpreter.ExecuteMove(cube, PllAlgorithms.EdgeLookup[signature]);
+    }
 }

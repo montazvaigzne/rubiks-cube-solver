@@ -27,10 +27,26 @@ public static class MoveInterpreter
                     case 'D': cube.MoveD(clockwise); break;
                     case 'R': cube.MoveR(clockwise); break;
                     case 'L': cube.MoveL(clockwise); break;
+                    case 'M': cube.MoveM(clockwise); break;
                     case 'F': cube.MoveF(clockwise); break;
                     case 'B': cube.MoveB(clockwise); break;
                 }
             }
         }
+    }
+
+    // Returns the inverse of a move sequence (e.g. "R U2 F'" -> "F U2 R'")
+    public static string Invert(string moves)
+    {
+        return string.Join(" ", moves
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Reverse()
+            .Select(move =>
+            {
+                // A double turn is its own inverse
+                if (move.Contains('2')) return move[0] + "2";
+
+                return move.Contains('\'') ? move[0].ToString() : move + "'";
+            }));
     }
 }

@@ -197,6 +197,22 @@ public class Cube
         RotateAdjacentOuterLinesOfFace(topUp, leftLeft, bottomDown, rightRight, clockwise);
     }
 
+    // M goes downwards, M' goes upwards
+    // So M is the same direction as L: Up -> Front -> Down -> Back -> Up
+    public void MoveM(bool clockwise)
+    {
+        // Each cycle is one 4-cycle of stickers: U -> F -> D -> B -> U
+        // The four strips are listed in the order they appear around the slice,
+        // and element i of every strip is the same point of the ring.
+
+        int[] middleUp = [1, 4, 7];
+        int[] middleFront = [19, 22, 25];
+        int[] middleDown = [28, 31, 34];
+        int[] middleBack = [52, 49, 46]; // Reversed: connects Down (34) to Back (52)
+
+        RotateAdjacentOuterLinesOfFace(middleUp, middleFront, middleDown, middleBack, clockwise);
+    }
+
     public bool IsSolved()
     {
         for (int i = 0; i < 54; i+=9) // Check each face (0, 9, 18, 27, 36, 45)

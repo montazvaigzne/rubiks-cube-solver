@@ -14,6 +14,7 @@ public class CubeTests
     [InlineData("L")]
     [InlineData("F")]
     [InlineData("B")]
+    [InlineData("M")]
     public void MoveFourTimes_ShouldReturnToSolvedState(string move)
     {
         var cube = new Cube();
@@ -31,6 +32,7 @@ public class CubeTests
     [InlineData("L")]
     [InlineData("F")]
     [InlineData("B")]
+    [InlineData("M")]
     public void DoubleMove_ShouldEqualTwoSingleMoves(string face)
     {
         var doubleMove = new Cube();
@@ -53,6 +55,7 @@ public class CubeTests
     [InlineData("L")]
     [InlineData("F")]
     [InlineData("B")]
+    [InlineData("M")]
     public void MoveTrueThenFalse_ShouldReturnToSolvedState(string move)
     {
         var cube = new Cube();
@@ -60,6 +63,47 @@ public class CubeTests
         MoveInterpreter.ExecuteMove(cube, $"{move} {move}'"); // Example: "R R'"
 
         Assert.True(cube.IsSolved());
+    }
+
+    // TEST: A slice turn moves the four centers of that slice
+    [Fact]
+    public void MoveM2_ShouldSwapTheFourCentersOfTheSlice()
+    {
+        var cube = new Cube();
+
+        MoveInterpreter.ExecuteMove(cube, "M2");
+
+        Assert.Equal(Color.Yellow, cube.GetColor(4));  // Up center now has the Down color
+        Assert.Equal(Color.White, cube.GetColor(31));  // Down center now has the Up color
+        Assert.Equal(Color.Blue, cube.GetColor(22));   // Front center now has the Back color
+        Assert.Equal(Color.Green, cube.GetColor(49));  // Back center now has the Front color
+    }
+
+    // TEST: M is the middle slice between L and R, it turns in the same direction as L
+    // M' goes upwards, M goes downwards.
+    // The other M tests only prove that M has order 4 (M M M M and M M' both solve the cube). Only this test checks the direction.
+    [Fact]
+    public void MoveM_ShouldTurnInTheSameDirectionAsL()
+    {
+        var cube = new Cube();
+        MoveInterpreter.ExecuteMove(cube, "M");
+
+        // Front middle column (19, 22, 25) takes the colors from Up: it moves downwards
+        Assert.Equal(Color.White, cube.GetColor(19));
+        Assert.Equal(Color.White, cube.GetColor(22));
+        Assert.Equal(Color.White, cube.GetColor(25));
+
+        // Up middle column (1, 4, 7) takes the colors from Back
+        Assert.Equal(Color.Blue, cube.GetColor(1));
+        Assert.Equal(Color.Blue, cube.GetColor(4));
+        Assert.Equal(Color.Blue, cube.GetColor(7));
+
+        var invertedCube = new Cube();
+        MoveInterpreter.ExecuteMove(invertedCube, "M'");
+
+        // M' goes upwards: Front takes the colors from Down, Up takes the colors from Front
+        Assert.Equal(Color.Yellow, invertedCube.GetColor(19));
+        Assert.Equal(Color.Green, invertedCube.GetColor(1));
     }
 
     // TEST: If doing a move and then its inverse returns the cube to its solved state by checking the colors of the corners
@@ -70,6 +114,7 @@ public class CubeTests
     [InlineData("L")]
     [InlineData("F")]
     [InlineData("B")]
+    [InlineData("M")]
     public void SingleMove_ShouldPreserveAllCorners(string move)
     {
         var initialCube = new Cube();
@@ -115,6 +160,7 @@ public class CubeTests
     [InlineData("L")]
     [InlineData("F")]
     [InlineData("B")]
+    [InlineData("M")]
     public void Move_OnScrambledCube_ShouldPreserveCornerIntegrity(string move)
     {
         var cube = new Cube();

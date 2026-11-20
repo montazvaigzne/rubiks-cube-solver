@@ -36,8 +36,11 @@ public static class OllAlgorithms
 
     // Lookup tables: orientation signature of the cube TO algorithm to execute.
     // They are built from the case tables above, so every case and every position is covered.
-    public static readonly Dictionary<string, string> EdgeLookup = BuildLookup(EdgeCases, EdgeSignature);
-    public static readonly Dictionary<string, string> CornerLookup = BuildLookup(CornerCases, CornerSignature);
+    public static readonly Dictionary<string, string> EdgeLookup =
+        LookupBuilder.Build(EdgeCases.Values.SelectMany(AllPositions), EdgeSignature);
+
+    public static readonly Dictionary<string, string> CornerLookup =
+        LookupBuilder.Build(CornerCases.Values.SelectMany(AllPositions), CornerSignature);
 
     // 4 characters that describe which of the 4 Down edges are already oriented.
     // Order: Front(28), Right(32), Back(34), Left(30). Y = yellow on the Down face.
@@ -88,43 +91,5 @@ public static class OllAlgorithms
             "D2 " + algorithm,      // position 2
             "D " + algorithm        // position 3
         ];
-    }
-
-    // Builds a "signature TO algorithm" lookup from a case table.
-    // Applying the inverse algorithm to a solved cube creates the exact case that
-    // the algorithm solves, so we can read the signature of every position from it.
-    private static Dictionary<string, string> BuildLookup(
-        Dictionary<string, string> cases,
-        Func<Cube, string> signature)
-    {
-        var lookup = new Dictionary<string, string>();
-
-        foreach (var algorithm in cases.Values)
-        {
-            foreach (var position in AllPositions(algorithm))
-            {
-                var cube = new Cube();
-                MoveInterpreter.ExecuteMove(cube, Invert(position));
-
-                // TryAdd keeps the first algorithm if two positions have the same
-                // signature (this happens for symmetric cases like Dot and H)
-                lookup.TryAdd(signature(cube), position);
-            }
-        }
-
-        return lookup;
-    }
-
-    // Reverses a move sequence and inverts every move (e.g. "R U2 F'" -> "F U2 R'")
-    private static string Invert(string moves)
-    {
-        return string.Join(" ", moves
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Reverse()
-            .Select(move =>
-            {
-                if (move.Contains('2')) return move[0] + "2";
-                return move.Contains('\'') ? move[0].ToString() : move + "'";
-            }));
     }
 }

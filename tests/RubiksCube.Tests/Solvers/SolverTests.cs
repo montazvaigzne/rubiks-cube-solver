@@ -233,4 +233,30 @@ public class SolverTests
             Assert.True(cube.GetColor(i) == Color.Yellow, $"OLL error: Index {i} on Down face is not yellow.");
         }
     }
+
+    // TEST GROUP: SolvePLL (permutation of the last layer) on various scrambles
+    [Theory]
+    [InlineData("")]                                     // Already solved state
+    [InlineData("R")]                                    // Single move
+    [InlineData("R U")]                                  // Two moves
+    [InlineData("R U F L D B")]                          // All faces once
+    [InlineData("F R U R' U' F'")]                       // I-Shape (OLL)
+    [InlineData("R U2 R' U' R U' R'")]                   // Antisune (OLL)
+    [InlineData("R2 D2 F2 U2 L2 B2")]                    // Double moves
+    public void SolvePLL_OnVariousScrambles_ShouldSolveWholeCube(string scramble)
+    {
+        var cube = new Cube();
+
+        // Scramble the cube based on the provided sequence
+        MoveInterpreter.ExecuteMove(cube, scramble);
+
+        SolverBeginner.SolveWhiteCross(cube);
+        SolverBeginner.SolveFirstLayer(cube);
+        SolverBeginner.SolveMiddleLayer(cube);
+        SolverBeginner.SolveOLL(cube);
+        SolverBeginner.SolvePLL(cube);
+
+        // Every sticker must be back on its original face
+        Assert.True(cube.IsSolved(), "PLL error: The cube is not solved, some stickers are still on the wrong face.");
+    }
 }
